@@ -1,0 +1,12 @@
+#Dependencies directories
+node_modules/
+
+#Local setings
+api/local.settings.json
+
+#Biuld output
+dist/
+build/
+
+#vscode settings
+.vscode/

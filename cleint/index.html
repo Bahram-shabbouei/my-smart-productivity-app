@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Smart Productivity App</title>
+    <style>
+        body { font-family: sans-serif; padding: 2em; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        ul { list-style: none; padding: 0; }
+        li { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        li.completed span { text-decoration: line-through; color: #aaa; }
+        input[type="checkbox"] { margin-right: 15px; }
+        input[type="text"] { width: 70%; padding: 8px; margin-right: 10px; }
+        button { padding: 8px 12px; border: none; background-color: #0078d4; color: white; cursor: pointer; }
+        button:hover { background-color: #005a9e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My Smart Productivity App</h1>
+        
+        <h2>Neue Aufgabe hinzufügen</h2>
+        <form id="add-task-form">
+            <input type="text" id="task-title" placeholder="Aufgabentitel" required>
+            <button type="submit">Hinzufügen</button>
+        </form>
+
+        <h2>Aufgabenliste</h2>
+        <ul id="task-list">
+            <!-- Aufgaben werden hier dynamisch eingefügt -->
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const taskForm = document.getElementById('add-task-form');
+            const taskList = document.getElementById('task-list');
+            const taskTitleInput = document.getElementById('task-title');
+
+            // Funktion, um Aufgaben vom Backend zu laden
+            async function getTasks() {
+                try {
+                    const response = await fetch('/api/GetTasks');
+                    if (!response.ok) throw new Error('Netzwerkantwort war nicht ok.');
+                    const tasks = await response.json();
+                    renderTasks(tasks);
+                } catch (error) {
+                    console.error('Fehler beim Laden der Aufgaben:', error);
+                    taskList.innerHTML = '<li>Fehler beim Laden der Aufgaben.</li>';
+                }
+            }
+
+            // Funktion, um Aufgaben im Frontend darzustellen
+            function renderTasks(tasks) {
+                taskList.innerHTML = '';
+                if (!tasks || tasks.length === 0) {
+                    taskList.innerHTML = '<li>Noch keine Aufgaben vorhanden.</li>';
+                    return;
+                }
+                tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    if (task.isCompleted) {
+                        li.classList.add('completed');
+                    }
+                    li.innerHTML = `
+                        <input type="checkbox" data-id="${task.id}" ${task.isCompleted ? 'checked' : ''}>
+                        <span>${task.title}</span>
+                    `;
+                    taskList.appendChild(li);
+                });
+            }
+
+            // Funktion, um eine neue Aufgabe hinzuzufügen
+            taskForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const title = taskTitleInput.value.trim();
+                if (!title) return;
+
+                try {
+                    await fetch('/api/CreateTask', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title: title, description: '' })
+                    });
+                    taskTitleInput.value = '';
+                    getTasks(); // Liste neu laden
+                } catch (error) {
+                    console.error('Fehler beim Hinzufügen der Aufgabe:', error);
+                }
+            });
+
+            // Initiale Ladefunktion aufrufen
+            getTasks();
+        });
+    </script>
+</body>
+</html>
