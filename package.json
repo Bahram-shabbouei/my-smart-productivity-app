@@ -4,7 +4,17 @@
   "description": "This is an AI-powered productivity assistant built with Azure serverless technologies. This project is part of my final project for the \"Web Development & Cloud Computing\" course at Techstarter.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install:all": "npm install --prefix client && npm install --prefix api",
+    "start:client": "npm start --prefix client",
+    "dev": "swa start ./client --api-location ./api --run \"npm run start:client\"",
+    "build": "npm run build --prefix client",
+    "test": "npm test --prefix client"
+  },
+  "devDependencies": {
+    "@azure/static-web-apps-cli": "^2.0.6"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "repository": {
     "type": "git",

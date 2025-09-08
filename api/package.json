@@ -1,15 +1,22 @@
 {
   "name": "api",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "func start",
+    "start:watch": "func start --verbose",
+    "test": "echo \"No API tests defined\" && exit 0"
   },
+  "type":"module",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "axios": "^1.11.0"
+  "@azure/functions": "^4.4.0",
+  "axios": "^1.11.0"
+  },
+  "devDependencies": {
+    "azure-functions-core-tools": "^4.0.5530"
   }
 }
