@@ -1,0 +1,84 @@
+.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 50px;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.task-adder {
+  margin: 20px 0;
+}
+
+.task-adder input {
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  width: 300px;
+}
+
+.task-adder button {
+  padding: 10px 15px;
+  font-size: 16px;
+  margin-left: 10px;
+  cursor: pointer;
+  background-color: #61dafb;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.error-message {
+  color: #ff4d4d;
+  margin-top: 10px;
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  width: 80%;
+  max-width: 500px;
+  margin-top: 20px;
+}
+
+.task-list li {
+  background: #444;
+  margin: 10px 0;
+  padding: 15px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.task-list li:hover {
+  background-color: #555;
+}
+
+.task-list li.completed span {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.delete-btn {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.delete-btn:hover {
+  background-color: #e60000;
+}

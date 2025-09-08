@@ -1,0 +1,20 @@
+{
+  "name": "my-smart-productivity-app",
+  "version": "1.0.0",
+  "description": "This is an AI-powered productivity assistant built with Azure serverless technologies. This project is part of my final project for the \"Web Development & Cloud Computing\" course at Techstarter.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bahram-shabbouei/my-smart-productivity-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Bahram-shabbouei/my-smart-productivity-app/issues"
+  },
+  "homepage": "https://github.com/Bahram-shabbouei/my-smart-productivity-app#readme"
+}
