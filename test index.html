@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Smart Productivity App</title>
+    <style>
+        body { font-family: sans-serif; padding: 2rem; }
+        h1 { color: #333; }
+        ul { list-style: none; padding: 0; }
+        li { background: #f4f4f4; margin-bottom: 0.5rem; padding: 0.5rem; border-radius: 4px; }
+        .completed { text-decoration: line-through; color: #888; }
+    </style>
+</head>
+<body>
+    <h1>My Tasks</h1>
+    <ul id="task-list">
+        <!-- Tasks will be loaded here by JavaScript -->
+    </ul>
+
+    <script>
+        async function getTasks() {
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = '<li>Loading tasks...</li>';
+            
+            try {
+                // The frontend will try to fetch data from the /api/GetTasks endpoint
+                const response = await fetch('/api/GetTasks');
+                const tasks = await response.json();
+
+                // Clear the "Loading" message
+                taskList.innerHTML = '';
+                
+                if (tasks.length === 0) {
+                    taskList.innerHTML = '<li>No tasks found.</li>';
+                    return;
+                }
+
+                tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    if (task.isCompleted) {
+                        li.classList.add('completed');
+                    }
+                    li.textContent = `${task.title}: ${task.description}`;
+                    taskList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+                taskList.innerHTML = '<li>Error loading tasks. Please try again later.</li>';
+            }
+        }
+
+        // Load tasks when the page is ready
+        document.addEventListener('DOMContentLoaded', getTasks);
+    </script>
+</body>
+</html>

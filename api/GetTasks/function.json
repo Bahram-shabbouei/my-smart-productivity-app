@@ -5,8 +5,8 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods":  [ "post" ],
-      "route": "CreateTask"
+      "methods": [ "get" ],
+      "route": "GetTasks"
     },
     {
       "type": "http",
