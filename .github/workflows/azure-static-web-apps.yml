@@ -40,7 +40,7 @@ jobs:
           action: 'upload'
           app_location: 'client'
           api_location: 'api'
-          output_location: 'client/build'
+          output_location: 'build'
 
       - name: Post Deployment Info
         run: echo "Deployment complete"

@@ -1,6 +1,7 @@
 {
   "name": "my-smart-productivity-app",
   "version": "1.0.0",
+  "proxy": "http://localhost:7071",
   "description": "This is an AI-powered productivity assistant built with Azure serverless technologies. This project is part of my final project for the \"Web Development & Cloud Computing\" course at Techstarter.",
   "main": "index.js",
   "scripts": {

@@ -7,14 +7,15 @@
     "start:watch": "func start --verbose",
     "test": "echo \"No API tests defined\" && exit 0"
   },
-  "type":"module",
+  
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-  "@azure/functions": "^4.4.0",
-  "axios": "^1.11.0"
+    "@azure/cosmos": "^4.5.1",
+    "@azure/functions": "^4.4.0",
+    "axios": "^1.11.0"
   },
   "devDependencies": {
     "azure-functions-core-tools": "^4.0.5530"
