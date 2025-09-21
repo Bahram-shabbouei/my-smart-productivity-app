@@ -239,3 +239,86 @@
     align-self: flex-end;
   }
 }
+/* Dark Mode Variables */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --header-bg: #282c34;
+  --card-bg: #ffffff;
+  --border-color: #dddddd;
+  --input-bg: #ffffff;
+}
+
+.App.dark-mode {
+  --bg-color: #1a1a1a;
+  --text-color: #ffffff;
+  --header-bg: #0d1117;
+  --card-bg: #21262d;
+  --border-color: #30363d;
+  --input-bg: #21262d;
+}
+
+/* Apply Dark Mode Variables */
+.App {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.App-header {
+  background-color: var(--header-bg);
+  transition: background-color 0.3s ease;
+  position: relative;
+}
+
+.task-list li {
+  background: var(--card-bg) !important;
+  border-color: var(--border-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.task-input, .category-filter select {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.category-filter label {
+  color: var(--text-color);
+}
+
+.task-details small {
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+/* Dark Mode Toggle Button */
+.dark-mode-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  z-index: 10;
+}
+
+.dark-mode-toggle:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+/* Error message dark mode support */
+.error-message {
+  background-color: var(--card-bg);
+  color: #dc3545;
+  border-color: var(--border-color);
+}
