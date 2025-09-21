@@ -28,6 +28,7 @@ module.exports = async function (context, req) {
         taskToUpdate.description = updatedData.description ?? taskToUpdate.description;
         taskToUpdate.isCompleted = updatedData.isCompleted ?? taskToUpdate.isCompleted;
         taskToUpdate.dueDate = updatedData.dueDate ?? taskToUpdate.dueDate;
+        taskToUpdate.category = updatedData.category ?? taskToUpdate.category;
 
         // 3. Aktualisierte Aufgabe speichern
         const { resource: updatedTask } = await container.item(taskId, taskId).replace(taskToUpdate);

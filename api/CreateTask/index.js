@@ -24,6 +24,7 @@ module.exports = async function (context, req) {
             description: body.description || "",
             isCompleted: false,
             dueDate: body.dueDate || null,
+            category: body.category || "other", // اضافه شده
             id: new Date().toISOString() + Math.random().toString().substring(2, 10)
         };
 
