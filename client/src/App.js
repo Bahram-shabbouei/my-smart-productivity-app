@@ -5,18 +5,33 @@ const API_BASE = '/api';
 
 function App() {
   const [tasks, setTasks] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDueDate, setNewTaskDueDate] = useState('');
+  const [newTaskCategory, setNewTaskCategory] = useState('other');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 1. Aufgaben vom Backend laden
+  // 1. Categories vom Backend laden
+  const getCategories = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/GetCategories`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      setCategories(data);
+    } catch (e) {
+      console.log('Error fetching categories');
+    }
+  };
+
+  // 2. Aufgaben vom Backend laden
   const getTasks = async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await fetch(`${API_BASE}/GetTasks`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);    
       const data = await response.json();
       setTasks(data);
     } catch (e) {
@@ -28,10 +43,11 @@ function App() {
   };
 
   useEffect(() => {
+    getCategories();
     getTasks();
   }, []);
 
-  // 2. Eine neue Aufgabe hinzufügen
+  // 3. Eine neue Aufgabe hinzufügen
   const addTask = async (e) => {
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
@@ -40,12 +56,18 @@ function App() {
       const response = await fetch(`${API_BASE}/CreateTask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTaskTitle, description: 'New Task', dueDate: newTaskDueDate || null }),
+        body: JSON.stringify({ 
+          title: newTaskTitle, 
+          description: 'New Task', 
+          dueDate: newTaskDueDate || null,
+          category: newTaskCategory 
+        }),
       });
       if (response.ok) {
         setNewTaskTitle('');
         setNewTaskDueDate('');
-        getTasks(); // Liste neu laden, um die neue Aufgabe anzuzeigen
+        setNewTaskCategory('other');
+        getTasks();
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to create task');
@@ -56,7 +78,7 @@ function App() {
     }
   };
 
-  // 3. Eine Aufgabe löschen
+  // 4. Eine Aufgabe löschen
   const deleteTask = async (id) => {
     try {
       const response = await fetch(`${API_BASE}/DeleteTask/${id}`, {
@@ -73,7 +95,7 @@ function App() {
     }
   };
 
-  // 4. Den Status einer Aufgabe aktualisieren (Erledigt/Offen)
+  // 5. Den Status einer Aufgabe aktualisieren
   const toggleTaskCompletion = async (task) => {
     try {
       const response = await fetch(`${API_BASE}/UpdateTask/${task.id}`, {
@@ -82,7 +104,6 @@ function App() {
         body: JSON.stringify({ ...task, isCompleted: !task.isCompleted }),
       });
       if (response.ok) {
-        // Optimistisches Update: Aktualisiere den Zustand sofort im Frontend
         setTasks(tasks.map(t => t.id === task.id ? { ...t, isCompleted: !t.isCompleted } : t));
       } else {
         throw new Error(`Failed to update task: ${response.statusText}`);
@@ -93,10 +114,21 @@ function App() {
     }
   };
 
+  // 6. Filtered tasks basierend auf ausgewählter Kategorie
+  const filteredTasks = selectedCategory === 'all' 
+    ? tasks 
+    : tasks.filter(task => task.category === selectedCategory);
+
+  // 7. Get category info
+  const getCategoryInfo = (categoryId) => {
+    return categories.find(cat => cat.id === categoryId) || { name: categoryId, color: '#95a5a6' };
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <h1>Produktivitäts-Assistent</h1>
+        
         <form onSubmit={addTask} className="task-adder">
           <input
             className="task-input"
@@ -111,8 +143,35 @@ function App() {
             value={newTaskDueDate}
             onChange={(e) => setNewTaskDueDate(e.target.value)}
           />
+          <select
+            className="task-input"
+            value={newTaskCategory}
+            onChange={(e) => setNewTaskCategory(e.target.value)}
+          >
+            {categories.map(category => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
           <button type="submit">Hinzufügen</button>
         </form>
+
+        {/* Category Filter */}
+        <div className="category-filter">
+          <label>Filter: </label>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+          >
+            <option value="all">Alle Kategorien</option>
+            {categories.map(category => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {error && <p className="error-message">{error}</p>}
 
@@ -120,22 +179,31 @@ function App() {
           {loading ? (
             <li>Lade Aufgaben...</li>
           ) : (
-            tasks.map(task => (
-              <li key={task.id} className={task.isCompleted ? 'completed' : ''}>
-                <input
-                  type="checkbox"
-                  checked={task.isCompleted}
-                  onChange={() => toggleTaskCompletion(task)}
-                />
-                <div className="task-details">
-                  <span>{task.title}</span>
-                  {task.dueDate && <small>Fällig am: {new Date(task.dueDate).toLocaleDateString()}</small>}
-                </div>
-                <button className="delete-btn" onClick={() => deleteTask(task.id)}>
-                  Löschen
-                </button>
-              </li>
-            ))
+            filteredTasks.map(task => {
+              const categoryInfo = getCategoryInfo(task.category);
+              return (
+                <li key={task.id} className={task.isCompleted ? 'completed' : ''}>      
+                  <input
+                    type="checkbox"
+                    checked={task.isCompleted}
+                    onChange={() => toggleTaskCompletion(task)}
+                  />
+                  <div className="task-details">
+                    <span>{task.title}</span>
+                    <span 
+                      className="category-badge" 
+                      style={{ backgroundColor: categoryInfo.color }}
+                    >
+                      {categoryInfo.name}
+                    </span>
+                    {task.dueDate && <small>Fällig am: {new Date(task.dueDate).toLocaleDateString()}</small>}
+                  </div>
+                  <button className="delete-btn" onClick={() => deleteTask(task.id)}>   
+                    Löschen
+                  </button>
+                </li>
+              );
+            })
           )}
         </ul>
       </header>
