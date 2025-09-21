@@ -12,6 +12,7 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+const [isDarkMode, setIsDarkMode] = useState(false);  
 
   // 1. Categories vom Backend laden
   const getCategories = async () => {
@@ -124,10 +125,20 @@ function App() {
     return categories.find(cat => cat.id === categoryId) || { name: categoryId, color: '#95a5a6' };
   };
 
+  // Toggle dark mode
+const toggleDarkMode = () => {
+  setIsDarkMode(!isDarkMode);
+};
   return (
-    <div className="App">
+    <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
       <header className="App-header">
         <h1>Produktivitäts-Assistent</h1>
+        <button 
+  className="dark-mode-toggle" 
+  onClick={toggleDarkMode}
+>
+  {isDarkMode ? '☀️ Light' : '🌙 Dark'}
+</button>
         
         <form onSubmit={addTask} className="task-adder">
           <input
