@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import './App.css';
 
 const API_BASE = '/api';
@@ -12,7 +12,8 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-const [isDarkMode, setIsDarkMode] = useState(false);  
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   // 1. Categories vom Backend laden
   const getCategories = async () => {
@@ -32,7 +33,7 @@ const [isDarkMode, setIsDarkMode] = useState(false);
     setError(null);
     try {
       const response = await fetch(`${API_BASE}/GetTasks`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);    
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
       setTasks(data);
     } catch (e) {
@@ -43,25 +44,106 @@ const [isDarkMode, setIsDarkMode] = useState(false);
     }
   };
 
+  // Helper function to get category info
+  const getCategoryInfo = (categoryId) => {
+    return categories.find(cat => cat.id === categoryId) || { name: categoryId, color: '#95a5a6' };
+  };
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
+  // Request notification permission
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationsEnabled(permission === 'granted');
+      return permission === 'granted';
+    }
+    return false;
+  };
+
+  // Show notification
+  const showNotification = useCallback((title, body, options = {}) => {
+    if (notificationsEnabled && 'Notification' in window) {
+      new Notification(title, {
+        body,
+        icon: '/favicon.ico',
+        tag: 'task-reminder',
+        ...options
+      });
+    }
+  }, [notificationsEnabled]);
+
+  // Check for upcoming deadlines - Using useCallback for better performance
+  const checkDeadlines = useCallback(() => {
+    const now = new Date();
+    tasks.forEach(task => {
+      if (task.dueDate && !task.isCompleted) {
+        const dueDate = new Date(task.dueDate);
+        const timeDiff = dueDate.getTime() - now.getTime();
+        const hoursUntilDue = timeDiff / (1000 * 60 * 60);
+
+        if (hoursUntilDue <= 24 && hoursUntilDue > 23) {
+          showNotification(
+            'Task Reminder',
+            `"${task.title}" is due tomorrow`,
+            { tag: `reminder-${task.id}` }
+          );
+        }
+
+        if (hoursUntilDue <= 1 && hoursUntilDue > 0) {
+          showNotification(
+            'Urgent Task Reminder',
+            `"${task.title}" is due in 1 hour!`,
+            { tag: `urgent-${task.id}` }
+          );
+        }
+      }
+    });
+  }, [tasks, showNotification]);
+
+  // Toggle notifications
+  const toggleNotifications = async () => {
+    if (!notificationsEnabled) {
+      const granted = await requestNotificationPermission();
+      if (granted) {
+        showNotification('Notifications Enabled', 'You will receive task reminders');
+      }
+    } else {
+      setNotificationsEnabled(false);
+    }
+  };
+
+  // Initial data fetch
   useEffect(() => {
     getCategories();
     getTasks();
   }, []);
 
+  // Check deadlines periodically
+  useEffect(() => {
+    if (notificationsEnabled && tasks.length > 0) {
+      checkDeadlines();
+      const interval = setInterval(checkDeadlines, 30 * 60 * 1000); // 30 minutes
+      return () => clearInterval(interval);
+    }
+  }, [tasks, notificationsEnabled, checkDeadlines]); // Note: checkDeadlines is a dependency now
+
   // 3. Eine neue Aufgabe hinzufügen
   const addTask = async (e) => {
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
-
     try {
       const response = await fetch(`${API_BASE}/CreateTask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: newTaskTitle, 
-          description: 'New Task', 
+        body: JSON.stringify({
+          title: newTaskTitle,
+          description: 'New Task',
           dueDate: newTaskDueDate || null,
-          category: newTaskCategory 
+          category: newTaskCategory
         }),
       });
       if (response.ok) {
@@ -116,30 +198,28 @@ const [isDarkMode, setIsDarkMode] = useState(false);
   };
 
   // 6. Filtered tasks basierend auf ausgewählter Kategorie
-  const filteredTasks = selectedCategory === 'all' 
-    ? tasks 
+  const filteredTasks = selectedCategory === 'all'
+    ? tasks
     : tasks.filter(task => task.category === selectedCategory);
 
-  // 7. Get category info
-  const getCategoryInfo = (categoryId) => {
-    return categories.find(cat => cat.id === categoryId) || { name: categoryId, color: '#95a5a6' };
-  };
-
-  // Toggle dark mode
-const toggleDarkMode = () => {
-  setIsDarkMode(!isDarkMode);
-};
   return (
     <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
       <header className="App-header">
         <h1>Produktivitäts-Assistent</h1>
-        <button 
-  className="dark-mode-toggle" 
-  onClick={toggleDarkMode}
->
-  {isDarkMode ? '☀️ Light' : '🌙 Dark'}
-</button>
-        
+        <button
+          className="dark-mode-toggle"
+          onClick={toggleDarkMode}
+        >
+          {isDarkMode ? '☀️ Light' : '🌙 Dark'}
+        </button>
+        <button
+          className="notification-toggle"
+          onClick={toggleNotifications}
+          title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
+        >
+          {notificationsEnabled ? '🔔' : '🔕'}
+        </button>
+
         <form onSubmit={addTask} className="task-adder">
           <input
             className="task-input"
@@ -193,7 +273,7 @@ const toggleDarkMode = () => {
             filteredTasks.map(task => {
               const categoryInfo = getCategoryInfo(task.category);
               return (
-                <li key={task.id} className={task.isCompleted ? 'completed' : ''}>      
+                <li key={task.id} className={task.isCompleted ? 'completed' : ''}>
                   <input
                     type="checkbox"
                     checked={task.isCompleted}
@@ -201,15 +281,15 @@ const toggleDarkMode = () => {
                   />
                   <div className="task-details">
                     <span>{task.title}</span>
-                    <span 
-                      className="category-badge" 
+                    <span
+                      className="category-badge"
                       style={{ backgroundColor: categoryInfo.color }}
                     >
                       {categoryInfo.name}
                     </span>
                     {task.dueDate && <small>Fällig am: {new Date(task.dueDate).toLocaleDateString()}</small>}
                   </div>
-                  <button className="delete-btn" onClick={() => deleteTask(task.id)}>   
+                  <button className="delete-btn" onClick={() => deleteTask(task.id)}>
                     Löschen
                   </button>
                 </li>
