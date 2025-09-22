@@ -14,6 +14,7 @@ function App() {
   const [error, setError] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   // 1. Categories vom Backend laden
   const getCategories = async () => {
@@ -66,43 +67,32 @@ function App() {
 
   // Show notification
   const showNotification = useCallback((title, body, options = {}) => {
-    if (notificationsEnabled && 'Notification' in window) {
-      new Notification(title, {
-        body,
-        icon: '/favicon.ico',
-        tag: 'task-reminder',
+    if ('Notification' in window) {
+      new Notification(title, { body, icon: '/favicon.ico',
         ...options
       });
     }
-  }, [notificationsEnabled]);
+  }, []); //Note dependencies are now empty
 
   // Check for upcoming deadlines - Using useCallback for better performance
   const checkDeadlines = useCallback(() => {
+    if (!notificationsEnabled) return;
     const now = new Date();
     tasks.forEach(task => {
       if (task.dueDate && !task.isCompleted) {
         const dueDate = new Date(task.dueDate);
-        const timeDiff = dueDate.getTime() - now.getTime();
-        const hoursUntilDue = timeDiff / (1000 * 60 * 60);
+      const hoursUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 
         if (hoursUntilDue <= 24 && hoursUntilDue > 23) {
-          showNotification(
-            'Task Reminder',
-            `"${task.title}" is due tomorrow`,
-            { tag: `reminder-${task.id}` }
-          );
+          showNotification('Task Reminder', `"${task.title}" is due tomorrow`, { tag: `reminder-${task.id}` });
         }
 
         if (hoursUntilDue <= 1 && hoursUntilDue > 0) {
-          showNotification(
-            'Urgent Task Reminder',
-            `"${task.title}" is due in 1 hour!`,
-            { tag: `urgent-${task.id}` }
-          );
+          showNotification('Urgent Task Reminder',`"${task.title}" is due in 1 hour!`, { tag: `urgent-${task.id}` });
         }
       }
     });
-  }, [tasks, showNotification]);
+}, [tasks, notificationsEnabled, showNotification]); // Added showNotification to dependencies
 
   // Toggle notifications
   const toggleNotifications = async () => {
@@ -115,6 +105,38 @@ function App() {
       setNotificationsEnabled(false);
     }
   };
+
+// Calculate statistics
+const calculateStats = useCallback(() => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(task => task.isCompleted).length;
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  
+  const overdueTasks = tasks.filter(task => {
+    if (task.isCompleted || !task.dueDate) return false;
+    return new Date(task.dueDate) < today;
+  }).length;
+  
+  const categoryBreakdown = categories.map(category => {
+    const categoryTasks = tasks.filter(task => task.category === category.id);
+    return {
+      ...category,
+      count: categoryTasks.length,
+      completed: categoryTasks.filter(task => task.isCompleted).length
+    };
+  }).filter(cat => cat.count > 0);
+  
+  return {
+    totalTasks,
+    completedTasks,
+    completionRate,
+    overdueTasks,
+    categoryBreakdown
+  };
+}, [tasks, categories]);
 
   // Initial data fetch
   useEffect(() => {
@@ -219,7 +241,17 @@ function App() {
         >
           {notificationsEnabled ? '🔔' : '🔕'}
         </button>
-
+        <button
+  className="stats-toggle"
+  onClick={() => setShowStats(!showStats)}
+  style={{
+    position: 'absolute',
+    top: '20px',
+    right: '140px'
+  }}
+>
+  {showStats ? '📊 Hide Stats' : '📊 Stats'}
+</button>
         <form onSubmit={addTask} className="task-adder">
           <input
             className="task-input"
