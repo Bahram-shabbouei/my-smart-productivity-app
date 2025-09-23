@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import './App.css';
-
+import StatsDashboard from './StatsDashboard';
 const API_BASE = '/api';
 
 function App() {
@@ -92,7 +92,7 @@ function App() {
         }
       }
     });
-}, [tasks, notificationsEnabled, showNotification]); // Added showNotification to dependencies
+}, [tasks, notificationsEnabled]); // Added showNotification to dependencies
 
   // Toggle notifications
   const toggleNotifications = async () => {
@@ -184,7 +184,7 @@ const calculateStats = useCallback(() => {
   };
 
   // 4. Eine Aufgabe löschen
-  const deleteTask = async (id) => {
+   const deleteTask = async (id) => {
     try {
       const response = await fetch(`${API_BASE}/DeleteTask/${id}`, {
         method: 'DELETE',
@@ -199,6 +199,7 @@ const calculateStats = useCallback(() => {
       setError('Could not delete the task.');
     }
   };
+
 
   // 5. Den Status einer Aufgabe aktualisieren
   const toggleTaskCompletion = async (task) => {
@@ -330,6 +331,15 @@ const calculateStats = useCallback(() => {
           )}
         </ul>
       </header>
+
+      {/* Statistics Dashboard Component*/}
+      <StatsDashboard
+        tasks={tasks}
+        categories={categories}
+        stats={calculateStats()}
+        showStats={showStats}
+        onClose={()=> setShowStats(false)}
+      />
     </div>
   );
 }
