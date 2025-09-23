@@ -1,12 +1,11 @@
 name: Azure Static Web Apps CI/CD
 
-
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build_and_deploy_job:
@@ -16,12 +15,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-
       # Use Node.js 20.x for Azure SDK compatibility
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: "20.x"
 
       # Cache npm dependencies for faster builds
       - name: Cache npm
@@ -57,10 +55,10 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: 'upload'
-          app_location: 'client'
-          api_location: 'api'
-          output_location: 'build'
+          action: "upload"
+          app_location: "client"
+          api_location: "api"
+          output_location: "build"
 
       - name: Post Deployment Info
         run: echo "Deployment complete"
