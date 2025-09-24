@@ -1,218 +1,284 @@
+/* ===== VARIABLES & RESET ===== */
+:root {
+  --primary: #007acc;
+  --primary-dark: #005a9e;
+  --success: #28a745;
+  --danger: #dc3545;
+  --danger-dark: #c82333;
+  --text-primary: #333;
+  --text-secondary: #666;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --border: #e1e5e9;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --radius: 8px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  --primary: #61dafb;
+  --primary-dark: #21a0c4;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #21262d;
+  --border: #30363d;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ===== APP LAYOUT ===== */
 .App {
-  text-align: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  transition: var(--transition);
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  background: var(--bg-primary);
+  padding: 2rem 1rem;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.App-header h1 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), var(--success));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+}
+
+/* ===== CONTROLS BAR ===== */
+.controls-bar {
   display: flex;
-  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
   align-items: center;
-  padding-top: 50px;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.task-adder {
-  margin: 20px 0;
-}
-
-.task-adder input {
-  padding: 10px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  width: 300px;
-}
-
-.task-adder button {
-  padding: 10px 15px;
-  font-size: 16px;
-  margin-left: 10px;
-  cursor: pointer;
-  background-color: #61dafb;
-  border: none;
-  border-radius: 5px;
-  font-weight: bold;
-}
-
-.error-message {
-  color: #ff4d4d;
-  margin-top: 10px;
-}
-
-.task-list {
-  list-style: none;
-  padding: 0;
-  width: 80%;
-  max-width: 500px;
-  margin-top: 20px;
-}
-
-.task-list li {
-  background: #444;
-  margin: 10px 0;
-  padding: 15px;
-  border-radius: 5px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background-color 0.2s;
-}
-
-.task-list li:hover {
-  background-color: #555;
-}
-
-.task-list li.completed span {
-  text-decoration: line-through;
-  opacity: 0.6;
-}
-
-.delete-btn {
-  background-color: #ff4d4d;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.delete-btn:hover {
-  background-color: #e60000;
-}
-/* Category Filter Styles */
-.category-filter {
-  margin: 20px 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.category-filter label {
-  font-weight: bold;
-  color: #333;
-}
-
-.category-filter select {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: white;
-  font-size: 14px;
-}
-/* Statistics Dashboard styles should be defined in CSS only. Remove all JSX/JavaScript code from this file. */
-/* Task Form Enhancements */
-.task-adder {
-  display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 20px 0;
+  margin: 2rem auto;
+  max-width: 800px;
+  padding: 0 1rem;
+}
+
+/* ===== SEARCH & FILTER ===== */
+.search-filter-container {
+  display: flex;
+  gap: 0.75rem;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: center;
 }
 
+.search-filter-container input,
+.search-filter-container select {
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  min-width: 160px;
+  transition: var(--transition);
+}
+
+.search-filter-container input:focus,
+.search-filter-container select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.1);
+  transform: translateY(-1px);
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.95rem;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: var(--danger-dark);
+  transform: scale(1.05);
+}
+
+/* ===== TASK FORM ===== */
+.task-adder {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 1.5rem 0;
+}
+
 .task-input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  min-width: 150px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 1rem;
+  min-width: 250px;
+  transition: var(--transition);
 }
 
 .task-input:focus {
   outline: none;
-  border-color: #007acc;
-  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.1);
 }
 
-/* Category Badge Styles */
-.category-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
-  color: white;
-  margin-left: 8px;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+/* ===== TASK LIST ===== */
+.task-list {
+  list-style: none;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
-/* Task Details Layout */
-.task-details {
+.task-item {
+  background: var(--bg-primary);
+  margin: 0.75rem 0;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius);
+  border-left: 4px solid var(--primary);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  transition: var(--transition);
+}
+
+.task-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
+}
+
+.task-item.completed {
+  opacity: 0.7;
+  border-left-color: var(--success);
+}
+
+.task-item.completed .task-text {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.task-content {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  flex-grow: 1;
-  margin: 0 10px;
+  gap: 0.25rem;
 }
 
-.task-details span:first-child {
+.task-text {
   font-weight: 500;
-  margin-bottom: 4px;
+  color: var(--text-primary);
+  line-height: 1.4;
 }
 
-.task-details small {
-  color: #666;
-  font-size: 12px;
-  margin-top: 2px;
+.task-meta {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 
-/* Task List Item Improvements */
-.task-list li {
-  display: flex;
-  align-items: flex-start;
-  padding: 12px;
-  margin: 8px 0;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border-left: 4px solid #007acc;
-}
-
-.task-list li.completed {
-  opacity: 0.7;
-  text-decoration: line-through;
-  border-left-color: #28a745;
-}
-
-.task-list li input[type="checkbox"] {
-  margin-right: 12px;
-  transform: scale(1.2);
-}
-
-/* Delete Button Styling */
-.delete-btn {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.2s;
-}
-
-.delete-btn:hover {
-  background-color: #c82333;
-}
-
-/* Error Message Styling */
+/* ===== UTILITY CLASSES ===== */
 .error-message {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 10px;
-  border-radius: 4px;
-  border: 1px solid #f5c6cb;
-  margin: 10px 0;
+  background: #fee;
+  color: var(--danger);
+  padding: 1rem;
+  border-radius: var(--radius);
+  border-left: 4px solid var(--danger);
+  margin: 1rem auto;
+  max-width: 600px;
 }
 
-/* Responsive Design */
+.category-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--primary);
+  color: white;
+  margin-left: 0.5rem;
+}
+
+/* ===== TOGGLE BUTTONS ===== */
+.toggle-buttons {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.toggle-btn {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.toggle-btn:hover {
+  border-color: var(--primary);
+  transform: scale(1.05);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
+  .controls-bar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .search-filter-container {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .search-filter-container input,
+  .search-filter-container select {
+    flex: 1;
+    min-width: auto;
+  }
+  
   .task-adder {
     flex-direction: column;
-    align-items: stretch;
+    width: 100%;
   }
   
   .task-input {
@@ -220,136 +286,29 @@
     width: 100%;
   }
   
-  .category-filter {
+  .task-item {
     flex-direction: column;
-    align-items: flex-start;
+    gap: 0.75rem;
   }
   
-  .task-list li {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .task-details {
-    margin: 10px 0;
-    width: 100%;
-  }
-  
-  .delete-btn {
-    align-self: flex-end;
-  }
-}
-/* Dark Mode Variables */
-:root {
-  --bg-color: #ffffff;
-  --text-color: #333333;
-  --header-bg: #282c34;
-  --card-bg: #ffffff;
-  --border-color: #dddddd;
-  --input-bg: #ffffff;
-}
-
-.App.dark-mode {
-  --bg-color: #1a1a1a;
-  --text-color: #ffffff;
-  --header-bg: #0d1117;
-  --card-bg: #21262d;
-  --border-color: #30363d;
-  --input-bg: #21262d;
-}
-
-/* Apply Dark Mode Variables */
-.App {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.App-header {
-  background-color: var(--header-bg);
-  transition: background-color 0.3s ease;
-  position: relative;
-}
-
-.task-list li {
-  background: var(--card-bg) !important;
-  border-color: var(--border-color);
-  color: var(--text-color);
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.task-input, .category-filter select {
-  background-color: var(--input-bg);
-  color: var(--text-color);
-  border-color: var(--border-color);
-  transition: all 0.3s ease;
-}
-
-.category-filter label {
-  color: var(--text-color);
-}
-
-.task-details small {
-  color: var(--text-color);
-  opacity: 0.7;
-}
-
-/* Dark Mode Toggle Button */
-.dark-mode-toggle {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  z-index: 10;
-}
-
-.dark-mode-toggle:hover {
-  opacity: 0.8;
-  transform: scale(1.05);
-}
-
-/* Error message dark mode support */
-.error-message {
-  background-color: var(--card-bg);
-  color: #dc3545;
-  border-color: var(--border-color);
-}
-/* Notification Toggle Button */
-.notification-toggle {
-  position: absolute;
-  top: 20px;
-  right: 80px; /* Adjust right position to be next to the dark mode button */
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  z-index: 10;
-}
-
-.notification-toggle:hover {
-  opacity: 0.8;
-  transform: scale(1.05);
-}
-
-/* Responsive adjustment for the two buttons */
-@media (max-width: 768px) {
-  .dark-mode-toggle,
-  .notification-toggle {
+  .toggle-buttons {
     position: static;
-    margin: 10px 0;
-    width: 100%;
-    text-align: center;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .App-header {
+    padding: 1.5rem 1rem;
+  }
+  
+  .task-item {
+    padding: 0.75rem;
+  }
+  
+  .btn {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.9rem;
   }
 }

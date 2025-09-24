@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, use } from 'react';
 import './App.css';
 import StatsDashboard from './StatsDashboard';
 const API_BASE = '/api';
@@ -15,6 +15,9 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [showStats, setShowStats] = useState(false);
+  //add a new states for searching and filtering tasks
+const [searchText, setsearchText] = useState('');
+const [filterStatus, setfilterStatus] = useState('all');
 
   // 1. Categories vom Backend laden
   const getCategories = async () => {
@@ -29,17 +32,27 @@ function App() {
   };
 
   // 2. Aufgaben vom Backend laden
+  // chenge functoin to include search and filter logic
   const getTasks = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE}/GetTasks`);
+      const url = new URL(`${apiBaseUrl}/tasks`);
+      //add filter by status
+      if (filter.status && filter.status !== 'all'){
+        url.searchParams.append('isCompleted', filter-status === 'completed');
+      }
+      //add search by text
+      if (filter.q && filter.q.trim() !== ''){
+        url.searchParams.append('q', filter.q.trim());
+      }
+      const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
       setTasks(data);
-    } catch (e) {
-      console.log('Error fetching tasks');
-      setError('Could not load tasks.');
+    } catch (err) {
+      setErrorMassage('Failed to fetch tasks.');
+      console.error('err');
     } finally {
       setLoading(false);
     }
@@ -153,6 +166,13 @@ const calculateStats = useCallback(() => {
     }
   }, [tasks, notificationsEnabled, checkDeadlines]); // Note: checkDeadlines is a dependency now
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      //this function will be called 500ms after the state stops changing
+      getTasks({status: filterStatus, q: searchText});
+    }, 500);
+    return () => clearTimeout(handler); //cleanup function to cancel the previos timer
+  }, [searchText, filterStatus]
   // 3. Eine neue Aufgabe hinzufügen
   const addTask = async (e) => {
     e.preventDefault();
@@ -296,8 +316,26 @@ const calculateStats = useCallback(() => {
             ))}
           </select>
         </div>
+        <div className="search-filter-container">
+  <input
+    type="text"
+    placeholder="Search tasks..."
+    value={searchText}
+    onChange={(e) => setSearchText(e.target.value)}
+  />
+  <select
+    value={filterStatus}
+    onChange={(e) => setFilterStatus(e.target.value)}
+  >
+    <option value="all">All</option>
+    <option value="completed">Completed</option>
+    <option value="remaining">Remaining</option>
+  </select>
+</div>
 
-        {error && <p className="error-message">{error}</p>}
+{/* The error message comes next */}
+{error && <p className="error-message">{error}</p>}
+
 
         <ul className="task-list">
           {loading ? (
