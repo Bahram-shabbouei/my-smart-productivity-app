@@ -172,7 +172,7 @@ const calculateStats = useCallback(() => {
       getTasks({status: filterStatus, q: searchText});
     }, 500);
     return () => clearTimeout(handler); //cleanup function to cancel the previos timer
-  }, [searchText, filterStatus]
+  }, [searchText, filterStatus]);
   // 3. Eine neue Aufgabe hinzufügen
   const addTask = async (e) => {
     e.preventDefault();
