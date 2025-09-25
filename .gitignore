@@ -1,13 +1,17 @@
-#Dependencies directories
+# Dependencies
 node_modules/
 
-#Local setings
-api/local.settings.json
-.env
-
-#Biuld output
+# Build outputs
 dist/
 build/
+.cache/
 
-#vscode settings
+# Local settings
+.env
+api/local.settings.json
+
+# VS Code settings (optional, but recommended)
 .vscode/
+
+# Ignore log files
+*.log
