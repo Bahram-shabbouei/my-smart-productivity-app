@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "7071:7071"
+    environment:
+      - CosmosDbConnectionString=${COSMOS_DB_CONNECTION_STRING}
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

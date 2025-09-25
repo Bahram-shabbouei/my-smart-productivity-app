@@ -15,11 +15,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Use Node.js 18.x for better compatibility with Azure SDK
-      - name: Setup Node.js 18.x
+      # Use Node.js 20.x for Azure SDK compatibility and modern features
+      - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: "18.x" # Changed to 18.x for stability
+          node-version: "20.x"
           cache: "npm"
 
       - name: Install root dev deps (SWA CLI)

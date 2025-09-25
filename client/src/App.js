@@ -33,32 +33,32 @@ const [filterStatus, setfilterStatus] = useState('all');
 
   // 2. Aufgaben vom Backend laden
   // chenge functoin to include search and filter logic
-  const getTasks = async () => {
+  const getTasks = async (status, query) => {
     setLoading(true);
     setError(null);
     try {
-      const url = new URL(`${apiBaseUrl}/tasks`);
-      //add filter by status
-      if (filter.status && filter.status !== 'all'){
-        url.searchParams.append('isCompleted', filter-status === 'completed');
+      const url = new URL(`${window.location.origin}${API_BASE}/GetTasks`);
+      // Add filter by status
+      if (status && status !== 'all') {
+        url.searchParams.append('isCompleted', status === 'completed');
       }
-      //add search by text
-      if (filter.q && filter.q.trim() !== ''){
-        url.searchParams.append('q', filter.q.trim());
+      // Add search by text
+      if (query && query.trim() !== '') {
+        url.searchParams.append('q', query.trim());
       }
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
       setTasks(data);
     } catch (err) {
-      setErrorMassage('Failed to fetch tasks.');
-      console.error('err');
+      setError('Failed to fetch tasks.');
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Helper function to get category info
+   // Helper function to get category info
   const getCategoryInfo = (categoryId) => {
     return categories.find(cat => cat.id === categoryId) || { name: categoryId, color: '#95a5a6' };
   };
@@ -81,31 +81,28 @@ const [filterStatus, setfilterStatus] = useState('all');
   // Show notification
   const showNotification = useCallback((title, body, options = {}) => {
     if ('Notification' in window) {
-      new Notification(title, { body, icon: '/favicon.ico',
-        ...options
-      });
+      new Notification(title, { body, icon: '/favicon.ico', ...options });
     }
-  }, []); //Note dependencies are now empty
+  }, []);
 
-  // Check for upcoming deadlines - Using useCallback for better performance
+
+  // Check for upcoming deadlines
   const checkDeadlines = useCallback(() => {
     if (!notificationsEnabled) return;
     const now = new Date();
     tasks.forEach(task => {
       if (task.dueDate && !task.isCompleted) {
         const dueDate = new Date(task.dueDate);
-      const hoursUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-
+        const hoursUntilDue = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
         if (hoursUntilDue <= 24 && hoursUntilDue > 23) {
           showNotification('Task Reminder', `"${task.title}" is due tomorrow`, { tag: `reminder-${task.id}` });
         }
-
         if (hoursUntilDue <= 1 && hoursUntilDue > 0) {
-          showNotification('Urgent Task Reminder',`"${task.title}" is due in 1 hour!`, { tag: `urgent-${task.id}` });
+          showNotification('Urgent Task Reminder', `"${task.title}" is due in 1 hour!`, { tag: `urgent-${task.id}` });
         }
       }
     });
-}, [tasks, notificationsEnabled]); // Added showNotification to dependencies
+  }, [tasks, notificationsEnabled, showNotification]);
 
   // Toggle notifications
   const toggleNotifications = async () => {
@@ -119,37 +116,33 @@ const [filterStatus, setfilterStatus] = useState('all');
     }
   };
 
-// Calculate statistics
-const calculateStats = useCallback(() => {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(task => task.isCompleted).length;
-  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  
-  const overdueTasks = tasks.filter(task => {
-    if (task.isCompleted || !task.dueDate) return false;
-    return new Date(task.dueDate) < today;
-  }).length;
-  
-  const categoryBreakdown = categories.map(category => {
-    const categoryTasks = tasks.filter(task => task.category === category.id);
+  // Calculate statistics
+  const calculateStats = useCallback(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(task => task.isCompleted).length;
+    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const overdueTasks = tasks.filter(task => {
+      if (task.isCompleted || !task.dueDate) return false;
+      return new Date(task.dueDate) < today;
+    }).length;
+    const categoryBreakdown = categories.map(category => {
+      const categoryTasks = tasks.filter(task => task.category === category.id);
+      return {
+        ...category,
+        count: categoryTasks.length,
+        completed: categoryTasks.filter(task => task.isCompleted).length
+      };
+    }).filter(cat => cat.count > 0);
     return {
-      ...category,
-      count: categoryTasks.length,
-      completed: categoryTasks.filter(task => task.isCompleted).length
+      totalTasks,
+      completedTasks,
+      completionRate,
+      overdueTasks,
+      categoryBreakdown
     };
-  }).filter(cat => cat.count > 0);
-  
-  return {
-    totalTasks,
-    completedTasks,
-    completionRate,
-    overdueTasks,
-    categoryBreakdown
-  };
-}, [tasks, categories]);
+  }, [tasks, categories]);
 
   // Initial data fetch
   useEffect(() => {
@@ -161,18 +154,19 @@ const calculateStats = useCallback(() => {
   useEffect(() => {
     if (notificationsEnabled && tasks.length > 0) {
       checkDeadlines();
-      const interval = setInterval(checkDeadlines, 30 * 60 * 1000); // 30 minutes
+      const interval = setInterval(checkDeadlines, 30 * 60 * 1000);
       return () => clearInterval(interval);
     }
-  }, [tasks, notificationsEnabled, checkDeadlines]); // Note: checkDeadlines is a dependency now
+  }, [tasks, notificationsEnabled, checkDeadlines]);
 
+  // Debounced effect for search and filter
   useEffect(() => {
     const handler = setTimeout(() => {
-      //this function will be called 500ms after the state stops changing
-      getTasks({status: filterStatus, q: searchText});
+      getTasks(filterStatus, searchText);
     }, 500);
-    return () => clearTimeout(handler); //cleanup function to cancel the previos timer
+    return () => clearTimeout(handler);
   }, [searchText, filterStatus]);
+
   // 3. Eine neue Aufgabe hinzufügen
   const addTask = async (e) => {
     e.preventDefault();
@@ -192,7 +186,7 @@ const calculateStats = useCallback(() => {
         setNewTaskTitle('');
         setNewTaskDueDate('');
         setNewTaskCategory('other');
-        getTasks();
+        getTasks(filterStatus, searchText); // Refresh tasks with current filters
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to create task');
@@ -204,13 +198,13 @@ const calculateStats = useCallback(() => {
   };
 
   // 4. Eine Aufgabe löschen
-   const deleteTask = async (id) => {
+  const deleteTask = async (id) => {
     try {
       const response = await fetch(`${API_BASE}/DeleteTask/${id}`, {
         method: 'DELETE',
       });
       if (response.ok) {
-        setTasks(tasks.filter(task => task.id !== id));
+        getTasks(filterStatus, searchText); // Re-fetch all tasks after deletion
       } else {
         throw new Error(`Failed to delete task: ${response.statusText}`);
       }
@@ -219,7 +213,6 @@ const calculateStats = useCallback(() => {
       setError('Could not delete the task.');
     }
   };
-
 
   // 5. Den Status einer Aufgabe aktualisieren
   const toggleTaskCompletion = async (task) => {
@@ -230,7 +223,7 @@ const calculateStats = useCallback(() => {
         body: JSON.stringify({ ...task, isCompleted: !task.isCompleted }),
       });
       if (response.ok) {
-        setTasks(tasks.map(t => t.id === task.id ? { ...t, isCompleted: !t.isCompleted } : t));
+        getTasks(filterStatus, searchText); // Re-fetch tasks after update
       } else {
         throw new Error(`Failed to update task: ${response.statusText}`);
       }
@@ -240,103 +233,49 @@ const calculateStats = useCallback(() => {
     }
   };
 
-  // 6. Filtered tasks basierend auf ausgewählter Kategorie
-  const filteredTasks = selectedCategory === 'all'
-    ? tasks
-    : tasks.filter(task => task.category === selectedCategory);
+  // 6. Filtered tasks based on all filters
+  const filteredTasks = tasks
+    .filter(task => selectedCategory === 'all' || task.category === selectedCategory)
+    .filter(task => filterStatus === 'all' || (filterStatus === 'completed' ? task.isCompleted : !task.isCompleted))
+    .filter(task => searchText.trim() === '' || task.title.toLowerCase().includes(searchText.toLowerCase()));
 
   return (
     <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
       <header className="App-header">
         <h1>Produktivitäts-Assistent</h1>
-        <button
-          className="dark-mode-toggle"
-          onClick={toggleDarkMode}
-        >
+        <button className="dark-mode-toggle" onClick={toggleDarkMode}>
           {isDarkMode ? '☀️ Light' : '🌙 Dark'}
         </button>
-        <button
-          className="notification-toggle"
-          onClick={toggleNotifications}
-          title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
-        >
+        <button className="notification-toggle" onClick={toggleNotifications} title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}>
           {notificationsEnabled ? '🔔' : '🔕'}
         </button>
-        <button
-  className="stats-toggle"
-  onClick={() => setShowStats(!showStats)}
-  style={{
-    position: 'absolute',
-    top: '20px',
-    right: '140px'
-  }}
->
-  {showStats ? '📊 Hide Stats' : '📊 Stats'}
-</button>
+        <button className="stats-toggle" onClick={() => setShowStats(!showStats)} style={{ position: 'absolute', top: '20px', right: '140px' }}>
+          {showStats ? '📊 Hide Stats' : '📊 Stats'}
+        </button>
         <form onSubmit={addTask} className="task-adder">
-          <input
-            className="task-input"
-            type="text"
-            placeholder="Neue Aufgabe..."
-            value={newTaskTitle}
-            onChange={(e) => setNewTaskTitle(e.target.value)}
-          />
-          <input
-            className="task-input"
-            type="date"
-            value={newTaskDueDate}
-            onChange={(e) => setNewTaskDueDate(e.target.value)}
-          />
-          <select
-            className="task-input"
-            value={newTaskCategory}
-            onChange={(e) => setNewTaskCategory(e.target.value)}
-          >
-            {categories.map(category => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
+          <input className="task-input" type="text" placeholder="Neue Aufgabe..." value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} />
+          <input className="task-input" type="date" value={newTaskDueDate} onChange={(e) => setNewTaskDueDate(e.target.value)} />
+          <select className="task-input" value={newTaskCategory} onChange={(e) => setNewTaskCategory(e.target.value)}>
+            {categories.map(category => (<option key={category.id} value={category.id}>{category.name}</option>))}
           </select>
           <button type="submit">Hinzufügen</button>
         </form>
-
-        {/* Category Filter */}
         <div className="category-filter">
           <label>Filter: </label>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
+          <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
             <option value="all">Alle Kategorien</option>
-            {categories.map(category => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
+            {categories.map(category => (<option key={category.id} value={category.id}>{category.name}</option>))}
           </select>
         </div>
         <div className="search-filter-container">
-  <input
-    type="text"
-    placeholder="Search tasks..."
-    value={searchText}
-    onChange={(e) => setSearchText(e.target.value)}
-  />
-  <select
-    value={filterStatus}
-    onChange={(e) => setFilterStatus(e.target.value)}
-  >
-    <option value="all">All</option>
-    <option value="completed">Completed</option>
-    <option value="remaining">Remaining</option>
-  </select>
-</div>
-
-{/* The error message comes next */}
-{error && <p className="error-message">{error}</p>}
-
-
+          <input type="text" placeholder="Search tasks..." value={searchText} onChange={(e) => setSearchText(e.target.value)} />
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            <option value="all">All</option>
+            <option value="completed">Completed</option>
+            <option value="remaining">Remaining</option>
+          </select>
+        </div>
+        {error && <p className="error-message">{error}</p>}
         <ul className="task-list">
           {loading ? (
             <li>Lade Aufgaben...</li>
@@ -345,17 +284,10 @@ const calculateStats = useCallback(() => {
               const categoryInfo = getCategoryInfo(task.category);
               return (
                 <li key={task.id} className={task.isCompleted ? 'completed' : ''}>
-                  <input
-                    type="checkbox"
-                    checked={task.isCompleted}
-                    onChange={() => toggleTaskCompletion(task)}
-                  />
+                  <input type="checkbox" checked={task.isCompleted} onChange={() => toggleTaskCompletion(task)} />
                   <div className="task-details">
                     <span>{task.title}</span>
-                    <span
-                      className="category-badge"
-                      style={{ backgroundColor: categoryInfo.color }}
-                    >
+                    <span className="category-badge" style={{ backgroundColor: categoryInfo.color }}>
                       {categoryInfo.name}
                     </span>
                     {task.dueDate && <small>Fällig am: {new Date(task.dueDate).toLocaleDateString()}</small>}
@@ -369,15 +301,7 @@ const calculateStats = useCallback(() => {
           )}
         </ul>
       </header>
-
-      {/* Statistics Dashboard Component*/}
-      <StatsDashboard
-        tasks={tasks}
-        categories={categories}
-        stats={calculateStats()}
-        showStats={showStats}
-        onClose={()=> setShowStats(false)}
-      />
+      <StatsDashboard tasks={tasks} categories={categories} stats={calculateStats()} showStats={showStats} onClose={() => setShowStats(false)} />
     </div>
   );
 }
