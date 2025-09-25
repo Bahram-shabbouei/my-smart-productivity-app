@@ -3,6 +3,7 @@ node_modules/
 
 #Local setings
 api/local.settings.json
+.env
 
 #Biuld output
 dist/
@@ -10,4 +11,3 @@ build/
 
 #vscode settings
 .vscode/
-.env/
