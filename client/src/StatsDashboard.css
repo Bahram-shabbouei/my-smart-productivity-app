@@ -1,0 +1,81 @@
+/* ======================================================================
+ * C:\Users\b_sha\Documents\GitHub\my-smart-productivity-app\client\src\StatsDashboard.css
+ * ====================================================================== */
+
+/* Statistics Dashboard (Centering Added Here) */
+.stats-dashboard {
+  /* Restricting width and ensuring the dashboard is centered */
+  width: 100%;
+  max-width: 800px; /* Matching the App-header's max-width for consistency */
+  margin: 20px auto; 
+  
+  padding: 20px;
+  background: var(--bg-primary); 
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: var(--transition); 
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.stats-toggle {
+  background: var(--bg-secondary); 
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 12px;
+  transition: var(--transition);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-secondary); 
+  padding: 15px;
+  border-radius: var(--radius);
+  text-align: center;
+  border: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--primary); 
+}
+
+.stat-label {
+  font-size: 14px;
+  color: var(--text-secondary); 
+  opacity: 0.9;
+  margin-top: 5px;
+}
+
+.category-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.category-stat {
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  color: white;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+}

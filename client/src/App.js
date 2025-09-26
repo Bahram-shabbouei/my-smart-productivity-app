@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, use } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import './App.css';
 import StatsDashboard from './StatsDashboard';
 const API_BASE = '/api';
@@ -8,16 +8,23 @@ function App() {
   const [categories, setCategories] = useState([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDueDate, setNewTaskDueDate] = useState('');
-  const [newTaskCategory, setNewTaskCategory] = useState('other');
+  // Corrected initial category to ensure it's a known value
+  const [newTaskCategory, setNewTaskCategory] = useState('other'); 
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // ==========================================================
+  // 1. DARK MODE STATE: Initialize by checking Local Storage
+  const initialTheme = localStorage.getItem('theme') === 'dark';
+  const [isDarkMode, setIsDarkMode] = useState(initialTheme);
+  // ==========================================================
+  
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [showStats, setShowStats] = useState(false);
-  //add a new states for searching and filtering tasks
-const [searchText, setsearchText] = useState('');
-const [filterStatus, setfilterStatus] = useState('all');
+  // add a new states for searching and filtering tasks
+  const [searchText, setSearchText] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
 
   // 1. Categories vom Backend laden
   const getCategories = async () => {
@@ -25,14 +32,18 @@ const [filterStatus, setfilterStatus] = useState('all');
       const response = await fetch(`${API_BASE}/GetCategories`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-      setCategories(data);
+      // Ensure 'other' category is present if no categories are fetched or if the backend returns no categories.
+      // This helps with the default value of newTaskCategory.
+      const defaultCategories = data.length > 0 ? data : [{ id: 'other', name: 'Other', color: '#95a5a6' }];
+      setCategories(defaultCategories);
     } catch (e) {
       console.log('Error fetching categories');
+      // Set a fallback category in case of error
+      setCategories([{ id: 'other', name: 'Other', color: '#95a5a6' }]); 
     }
   };
 
   // 2. Aufgaben vom Backend laden
-  // chenge functoin to include search and filter logic
   const getTasks = async (status, query) => {
     setLoading(true);
     setError(null);
@@ -58,15 +69,30 @@ const [filterStatus, setfilterStatus] = useState('all');
     }
   };
 
-   // Helper function to get category info
+  // Helper function to get category info
   const getCategoryInfo = (categoryId) => {
-    return categories.find(cat => cat.id === categoryId) || { name: categoryId, color: '#95a5a6' };
+    // If a task's category is not found, default to a fallback.
+    return categories.find(cat => cat.id === categoryId) || { name: categoryId, color: '#95a5a6' }; 
   };
 
-  // Toggle dark mode
+  // ==========================================================
+  // 2. TOGGLE DARK MODE: Updates state AND DOM (The missing link)
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
+    setIsDarkMode(prevMode => !prevMode);
   };
+
+  // 3. USE EFFECT FOR DARK MODE: Applies theme attribute on state change
+  useEffect(() => {
+    const rootElement = document.documentElement; // Targets the <html> tag
+    if (isDarkMode) {
+        rootElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        rootElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+  // ==========================================================
 
   // Request notification permission
   const requestNotificationPermission = async () => {
@@ -80,10 +106,10 @@ const [filterStatus, setfilterStatus] = useState('all');
 
   // Show notification
   const showNotification = useCallback((title, body, options = {}) => {
-    if ('Notification' in window) {
-      new Notification(title, { body, icon: '/favicon.ico', ...options });
+    if (notificationsEnabled && 'Notification' in window) { // Check if enabled before showing
+        new Notification(title, { body, icon: '/favicon.ico', ...options });
     }
-  }, []);
+  }, [notificationsEnabled]);
 
 
   // Check for upcoming deadlines
@@ -109,7 +135,8 @@ const [filterStatus, setfilterStatus] = useState('all');
     if (!notificationsEnabled) {
       const granted = await requestNotificationPermission();
       if (granted) {
-        showNotification('Notifications Enabled', 'You will receive task reminders');
+        // Only show notification if permission was just granted
+        // showNotification('Notifications Enabled', 'You will receive task reminders'); 
       }
     } else {
       setNotificationsEnabled(false);
@@ -154,7 +181,7 @@ const [filterStatus, setfilterStatus] = useState('all');
   useEffect(() => {
     if (notificationsEnabled && tasks.length > 0) {
       checkDeadlines();
-      const interval = setInterval(checkDeadlines, 30 * 60 * 1000);
+      const interval = setInterval(checkDeadlines, 30 * 60 * 1000); // 30 minutes
       return () => clearInterval(interval);
     }
   }, [tasks, notificationsEnabled, checkDeadlines]);
@@ -240,33 +267,47 @@ const [filterStatus, setfilterStatus] = useState('all');
     .filter(task => searchText.trim() === '' || task.title.toLowerCase().includes(searchText.toLowerCase()));
 
   return (
-    <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
+    // NOTE: Removed the redundant 'dark-mode' class here. The CSS should target the [data-theme="dark"] on the <html> tag, which is managed by the useEffect hook.
+    // The class `App` itself is enough for the base styles.
+    <div className={`App`}> 
       <header className="App-header">
         <h1>Produktivitäts-Assistent</h1>
+        
+        {/* Dark Mode Toggle Button */}
         <button className="dark-mode-toggle" onClick={toggleDarkMode}>
           {isDarkMode ? '☀️ Light' : '🌙 Dark'}
         </button>
+        
+        {/* Notification Toggle Button */}
         <button className="notification-toggle" onClick={toggleNotifications} title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}>
           {notificationsEnabled ? '🔔' : '🔕'}
         </button>
+        
         <button className="stats-toggle" onClick={() => setShowStats(!showStats)} style={{ position: 'absolute', top: '20px', right: '140px' }}>
           {showStats ? '📊 Hide Stats' : '📊 Stats'}
         </button>
+        
         <form onSubmit={addTask} className="task-adder">
-          <input className="task-input" type="text" placeholder="Neue Aufgabe..." value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} />
+          {/* Input fields */}
+          <input className="task-input" type="text" placeholder="New Task..." value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} />
           <input className="task-input" type="date" value={newTaskDueDate} onChange={(e) => setNewTaskDueDate(e.target.value)} />
+          
+          {/* Category Select for NEW TASK */}
           <select className="task-input" value={newTaskCategory} onChange={(e) => setNewTaskCategory(e.target.value)}>
             {categories.map(category => (<option key={category.id} value={category.id}>{category.name}</option>))}
           </select>
           <button type="submit">Hinzufügen</button>
         </form>
+        
         <div className="category-filter">
           <label>Filter: </label>
+          {/* Category Filter Select */}
           <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-            <option value="all">Alle Kategorien</option>
+            <option value="all">All Categories</option>
             {categories.map(category => (<option key={category.id} value={category.id}>{category.name}</option>))}
           </select>
         </div>
+        
         <div className="search-filter-container">
           <input type="text" placeholder="Search tasks..." value={searchText} onChange={(e) => setSearchText(e.target.value)} />
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
@@ -275,7 +316,9 @@ const [filterStatus, setfilterStatus] = useState('all');
             <option value="remaining">Remaining</option>
           </select>
         </div>
+        
         {error && <p className="error-message">{error}</p>}
+        
         <ul className="task-list">
           {loading ? (
             <li>Lade Aufgaben...</li>
