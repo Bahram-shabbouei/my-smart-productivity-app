@@ -61,7 +61,7 @@
 ## 🌐 Live Demo
 
 > **[🔗 View the Live Application](https://your-app-url.azurestaticapps.net)**  
-> *(Replace with your actual deployed URL)*
+> 
 
 **Test Credentials:** (If applicable)
 - Email: `demo@example.com`
@@ -83,7 +83,7 @@
   <em>Figure 2: Task Management Interface</em>
 </p>
 
-> 💡 **Pro Tip:** For better engagement, replace placeholder images with actual screenshots or an animated GIF demo. Use tools like [ScreenToGif](https://www.screentogif.com/) to create a short demo.
+> 💡 **Pro Tip:** For better engagement, replace placeholder images with actualscreenshots or an animated GIF demo. Use tools like [ScreenToGif](https://www.screentogif.com/) to create a short demo.
 
 ---
 
